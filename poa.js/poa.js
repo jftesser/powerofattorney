@@ -21,6 +21,7 @@ var places = [];
 var villa_alta;
 
 var grantors = [];
+var money = [];
 
 var buildElevation = function(p) {
 	//var url = "https://maps.googleapis.com/maps/api/elevation/json?locations="+p.lat+","+p.lon+"&key="+gapi;
@@ -56,7 +57,7 @@ var buildGrantors = function() {
 		});
 
 		if (g.place) {
-			svg.append("text")
+			g.svg = svg.append("text")
 		    .attr("x", g.place.x)
 		    .attr("y", g.place.y)
 		    .attr("dy", "-.35em")
@@ -94,12 +95,25 @@ var buildPlaces = function() {
 	    buildElevation(p);
 	});
 }
-
+loadJSON("./data/money.json",function(data){
+	data = JSON.parse(data);
+	data.forEach(function(mj){
+		money.push(mj);
+	});
 loadJSON("./data/places.json",function(data){
 	data = JSON.parse(data);
 	data.forEach(function(pj){
 		pj.lat = parseFloat(pj.lat);
 		pj.lon = parseFloat(pj.lon);
+		money.forEach(function(m){
+			if (pj.place_id == m.place_id) {
+			var mparts = m.money.split(".");
+			var mstr = mparts[0] + " pesos";
+			if (mparts.length == 2) mstr += " y " + mparts[1] + " reales"
+			 pj.money = mstr;
+			 pj.money_val = m.money;
+			}
+		});
 		places.push(pj);
 	});
 	buildPlaces();
@@ -126,13 +140,14 @@ loadJSON("./data/villa_alta.json",function(data){
 	    .attr("cy", villa_alta.y)
 	    .attr("r", 10);*/
 });
+});
 
 var setupCollision = function() {
 
 var all_places = places;
 all_places.unshift(villa_alta);
 
-var nodes = all_places.map(function(p) { return {radius: 30, place: p, x: p.x, y: p.y}; }),
+var nodes = all_places.map(function(p) { return {radius: 5, place: p, x: p.x, y: p.y}; }),
     root = nodes[0],
     color = d3.scale.category10();
 
@@ -145,7 +160,15 @@ svg.selectAll("circle")
     .style("opacity", function(d) { return d.place.alpha;})
     .style("fill", function(d, i) { return color(0); })
     .append("svg:title")
-    .text(function(d) { return d.place.name_pueblo; });
+    .text(function(d) { 
+    	var tstr = d.place.name_pueblo+"\n";
+    	if (d.place.money) {
+    		tstr += "\n"+d.place.money+"\n";
+    	}
+    	d.place.grantors.forEach(function(g){
+    		tstr += "\n"+g.name + ", " + g.title;
+    	});
+    	return tstr; });
 
 root.radius = 0;
 root.fixed = true;
