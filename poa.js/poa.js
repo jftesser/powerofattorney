@@ -8,12 +8,14 @@ colorScale.range = (['beige','red']);
 colorScale.domain = (['Spanish','Nahvatl','Nexitzo Zapotec','Cajonos Zapotec','Bijanos Zapotec','Mixe','Chihantec']);
 
 
-var xsz = 600;
+var xsz = 1000;
 var ysz = 600;
 var minlat = 0;
 var maxlat = 0;
 var minlon = 0;
 var maxlon = 0;
+var minelev = 0;
+var maxelev = 0;
 
 var places = [];
 var villa_alta;
@@ -21,7 +23,7 @@ var villa_alta;
 var grantors = [];
 
 var buildElevation = function(p) {
-	var url = "https://maps.googleapis.com/maps/api/elevation/json?locations="+p.lat+","+p.lon+"&key="+gapi;
+	//var url = "https://maps.googleapis.com/maps/api/elevation/json?locations="+p.lat+","+p.lon+"&key="+gapi;
 	//console.log(p.name_pueblo)
 	//console.log(url);
 	/*$.ajax({
@@ -41,6 +43,7 @@ var buildElevation = function(p) {
 var normalize = function(p) {
 	p.x = (p.lon-minlon)/(maxlon-minlon)*xsz;
 	p.y = (p.lat-minlat)/(maxlat-minlat)*ysz;
+	p.alpha = (p.elev-minelev)/(maxelev-minelev)*0.05+0.95;
 }
 
 var buildGrantors = function() {
@@ -71,6 +74,8 @@ var buildPlaces = function() {
 		if (!set || p.lat > maxlat) maxlat = p.lat;
 		if (!set || p.lon < minlon) minlon = p.lon;
 		if (!set || p.lon > maxlon) maxlon = p.lon;
+		if (!set || p.elev < minelev) minelev = p.elev;
+		if (!set || p.elev > maxelev) maxelev = p.elev;
 		set = true;
 	});
 	places.forEach(function(p){
@@ -124,14 +129,10 @@ loadJSON("./data/villa_alta.json",function(data){
 
 var setupCollision = function() {
 
-/*var nodes = places,
-    root = villa_alta,
-    color = d3.scale.category10();*/
-
 var all_places = places;
 all_places.unshift(villa_alta);
 
-var nodes = all_places.map(function(p) { return {radius: 12, place: p, x: p.x, y: p.y}; }),
+var nodes = all_places.map(function(p) { return {radius: 30, place: p, x: p.x, y: p.y}; }),
     root = nodes[0],
     color = d3.scale.category10();
 
@@ -139,9 +140,10 @@ console.log(nodes[0]);
 
 svg.selectAll("circle")
     .data(nodes.slice(1))
-  .enter().append("circle")
+  	.enter().append("circle")
     .attr("r", function(d) { return d.radius; })
-    .style("fill", function(d, i) { return color(i % 3); })
+    .style("opacity", function(d) { return d.place.alpha;})
+    .style("fill", function(d, i) { return color(0); })
     .append("svg:title")
     .text(function(d) { return d.place.name_pueblo; });
 
