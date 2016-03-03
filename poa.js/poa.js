@@ -1,12 +1,23 @@
 window.onload = function() {
 var svg = d3.select("#main");
-
+<<<<<<< HEAD
 
 var colorScale = d3.scale.ordinal();
 colorScale.range = (['beige','red']);
 colorScale.domain = (['Spanish','Nahvatl','Nexitzo Zapotec','Cajonos Zapotec','Bijanos Zapotec','Mixe','Chihantec']);
 
-
+var buildPlace = function(pj) {
+	console.log(pj);
+	var x = parseFloat(pj.lat);
+	var y = parseFloat(pj.lon);
+	y += 200.0;
+	svg.append("circle")
+    .attr("cx", x)
+    .attr("cy", y)
+    //.attr("fill", colorScale(pj.language))
+    .attr("r", 2.5);
+};
+=======
 var xsz = 600;
 var ysz = 400;
 
@@ -36,7 +47,6 @@ var buildPlaces = function() {
 		svg.append("circle")
 	    .attr("cx", p.x)
 	    .attr("cy", p.y)
-        //.attr("fill", colorScale(pj.language))
 	    .attr("r", 2.5);
 	});
 }
