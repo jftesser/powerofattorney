@@ -9,7 +9,7 @@ colorScale.domain = (['Spanish','Nahvatl','Nexitzo Zapotec','Cajonos Zapotec','B
 
 
 var xsz = 1000;
-var ysz = 600;
+var ysz = 550;
 var minlat = 0;
 var maxlat = 0;
 var minlon = 0;
@@ -22,6 +22,7 @@ var villa_alta;
 
 var grantors = [];
 var money = [];
+var poplang = [];
 
 var buildElevation = function(p) {
 	//var url = "https://maps.googleapis.com/maps/api/elevation/json?locations="+p.lat+","+p.lon+"&key="+gapi;
@@ -56,13 +57,13 @@ var buildGrantors = function() {
 			}
 		});
 
-		if (g.place) {
+		/*if (g.place) {
 			g.svg = svg.append("text")
 		    .attr("x", g.place.x)
 		    .attr("y", g.place.y)
 		    .attr("dy", "-.35em")
 		    .text(g.name);
-		}
+		}*/
 	});
 }
 
@@ -95,6 +96,12 @@ var buildPlaces = function() {
 	    buildElevation(p);
 	});
 }
+loadJSON("./data/population_language.json",function(data){
+	data = JSON.parse(data);
+	data.forEach(function(plj){
+		poplang.push(plj);
+	});
+
 loadJSON("./data/money.json",function(data){
 	data = JSON.parse(data);
 	data.forEach(function(mj){
@@ -114,6 +121,13 @@ loadJSON("./data/places.json",function(data){
 			 pj.money_val = m.money;
 			}
 		});
+
+		poplang.forEach(function(pl){
+			if (pj.place_id == pl.place_id) {
+				pj.language = pl.languages;
+				pj.population = parseFloat(pl.population);
+			}
+		});
 		places.push(pj);
 	});
 	buildPlaces();
@@ -128,6 +142,7 @@ loadJSON("./data/places.json",function(data){
 		setupCollision();
 	});
 });
+//
 
 loadJSON("./data/villa_alta.json",function(data){
 	data = JSON.parse(data);
@@ -141,13 +156,14 @@ loadJSON("./data/villa_alta.json",function(data){
 	    .attr("r", 10);*/
 });
 });
+});
 
 var setupCollision = function() {
 
 var all_places = places;
 all_places.unshift(villa_alta);
 
-var nodes = all_places.map(function(p) { return {radius: 5, place: p, x: p.x, y: p.y}; }),
+var nodes = all_places.map(function(p) { return {radius: p.population*0.05, place: p, x: p.x, y: p.y}; }),
     root = nodes[0],
     color = d3.scale.category10();
 
@@ -156,7 +172,7 @@ console.log(nodes[0]);
 svg.selectAll("circle")
     .data(nodes.slice(1))
   	.enter().append("circle")
-    .attr("r", function(d) { return d.radius; })
+    .attr("r", function(d) { return d.place.population*0.05; })
     .style("opacity", function(d) { return d.place.alpha;})
     .style("fill", function(d, i) { return color(0); })
     .append("svg:title")
