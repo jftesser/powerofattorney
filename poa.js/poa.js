@@ -1,6 +1,10 @@
 window.onload = function() {
 var svg = d3.select("#main");
 
+var colorScale = d3.scale.ordinal();
+colorScale.range = (['beige','red']);
+colorScale.domain = (['Spanish','Nahvatl','Nexitzo Zapotec','Cajonos Zapotec','Bijanos Zapotec','Mixe','Chihantec']);
+
 var buildPlace = function(pj) {
 	console.log(pj);
 	var x = parseFloat(pj.lat);
@@ -9,6 +13,7 @@ var buildPlace = function(pj) {
 	svg.append("circle")
     .attr("cx", x)
     .attr("cy", y)
+    //.attr("fill", colorScale(pj.language))
     .attr("r", 2.5);
 };
 
@@ -23,6 +28,8 @@ loadJSON("./data/places.json",function(data){
 
 
 }
+
+
 
 function loadJSON(path, callback) {   
 
