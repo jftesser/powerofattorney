@@ -1,23 +1,47 @@
 window.onload = function() {
 var svg = d3.select("#main");
+var xsz = 600;
+var ysz = 400;
 
-var buildPlace = function(pj) {
-	console.log(pj);
-	var x = parseFloat(pj.lat);
-	var y = parseFloat(pj.lon);
-	y += 200.0;
-	svg.append("circle")
-    .attr("cx", x)
-    .attr("cy", y)
-    .attr("r", 2.5);
-};
+var places = [];
+
+var buildPlaces = function() {
+	// normalize
+	var minlat = 0;
+	var maxlat = 0;
+	var minlon = 0;
+	var maxlon = 0;
+	var set = false;
+	places.forEach(function(p){
+		if (!set || p.lat < minlat) minlat = p.lat;
+		if (!set || p.lat > maxlat) maxlat = p.lat;
+		if (!set || p.lon < minlon) minlon = p.lon;
+		if (!set || p.lon > maxlon) maxlon = p.lon;
+		set = true;
+	});
+	places.forEach(function(p){
+		p.x = (p.lon-minlon)/(maxlon-minlon)*xsz;
+		p.y = (p.lat-minlat)/(maxlat-minlat)*ysz;
+	});
+	// build
+	places.forEach(function(p){
+		console.log(p);
+		svg.append("circle")
+	    .attr("cx", p.x)
+	    .attr("cy", p.y)
+	    .attr("r", 2.5);
+	});
+}
 
 
 loadJSON("./data/places.json",function(data){
 	data = JSON.parse(data);
 	data.forEach(function(pj){
-		buildPlace(pj);
+		pj.lat = parseFloat(pj.lat);
+		pj.lon = parseFloat(pj.lon);
+		places.push(pj);
 	});
+	buildPlaces();
 });
 
 
