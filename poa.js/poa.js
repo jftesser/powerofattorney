@@ -7,8 +7,32 @@ var colorScale = d3.scale.ordinal();
 colorScale.range = (['beige','red']);
 colorScale.domain = (['Spanish','Nahvatl','Nexitzo Zapotec','Cajonos Zapotec','Bijanos Zapotec','Mixe','Chihantec']);
 
+var languageToColor = function(l) {
+	if (l == 'Spanish') {
+		return '#574F28';
+	}
+	if (l == 'Nahvatl') {
+		return '#66051D';
+	}
+	if (l == 'Nexitzo Zapotec') {
+		return '#6A8000';
+	}
+	if (l == 'Cajonos Zapotec') {
+		return '#256917';
+	}
+	if (l == 'Bijanos Zapotec') {
+		return '#0C5F36';
+	}
+	if (l == 'Mixe') {
+		return '#7A2F2A';
+	}
+	if (l == 'Chihantec') {
+		return '#6D2612';
+	}
+}
 
-var xsz = 1000;
+
+var xsz = 800;
 var ysz = 550;
 var minlat = 0;
 var maxlat = 0;
@@ -114,11 +138,13 @@ loadJSON("./data/places.json",function(data){
 		pj.lon = parseFloat(pj.lon);
 		money.forEach(function(m){
 			if (pj.place_id == m.place_id) {
+				if (m.money) {
 			var mparts = m.money.split(".");
 			var mstr = mparts[0] + " pesos";
 			if (mparts.length == 2) mstr += " y " + mparts[1] + " reales"
 			 pj.money = mstr;
 			 pj.money_val = m.money;
+			}
 			}
 		});
 
@@ -148,12 +174,10 @@ loadJSON("./data/villa_alta.json",function(data){
 	data = JSON.parse(data);
 	data.lat = parseFloat(data.lat);
 	data.lon = parseFloat(data.lon);
+	data.language = "Spanish";
 	villa_alta = data;
 	normalize(villa_alta);
-	/*villa_alta.svg = svg.append("circle")
-	    .attr("cx", villa_alta.x)
-	    .attr("cy", villa_alta.y)
-	    .attr("r", 10);*/
+	
 });
 });
 });
@@ -162,35 +186,105 @@ var setupCollision = function() {
 
 var all_places = places;
 all_places.unshift(villa_alta);
+console.log(all_places);
 
-var nodes = all_places.map(function(p) { return {radius: p.population*0.05, place: p, x: p.x, y: p.y}; }),
+var nodes = all_places.map(function(p) { 
+	var r = 0;
+	if (p.language == "Spanish") r = 100;
+	if (p.population) r = p.population*0.05;
+	return {radius: r, place: p, x: p.x, y: p.y}; }),
     root = nodes[0],
     color = d3.scale.category10();
 
-console.log(nodes[0]);
+var buildTooltip = function(p) {
+	var tstr = p.name_pueblo+"\n";
+	if (p.money) {
+		tstr += "\n"+p.money+"\n";
+	}
+	if (p.language) {
+		tstr += "\n"+p.language+"\n";
+	}
+	if (p.grantors) {
+	p.grantors.forEach(function(g){
+		tstr += "\n"+g.name + ", " + g.title;
+	});
+    }
+    return tstr;
+}
 
 svg.selectAll("circle")
     .data(nodes.slice(1))
-  	.enter().append("circle")
-    .attr("r", function(d) { return d.place.population*0.05; })
-    .style("opacity", function(d) { return d.place.alpha;})
-    .style("fill", function(d, i) { return color(0); })
+  	.enter().append("svg:circle")
+    .attr("r", function(d) { 
+    	var r = 0;
+		if (d.place.population) r = Math.max(0.0,d.place.population*0.05-4);
+    	return r })
+    .style("fill-opacity", function(d) { return d.place.alpha;})
+    .style("fill", "black")
+    .attr("stroke-width", 5)
+    .attr("stroke", function(d) { return languageToColor(d.place.language); })
     .append("svg:title")
-    .text(function(d) { 
-    	var tstr = d.place.name_pueblo+"\n";
-    	if (d.place.money) {
-    		tstr += "\n"+d.place.money+"\n";
-    	}
-    	d.place.grantors.forEach(function(g){
-    		tstr += "\n"+g.name + ", " + g.title;
-    	});
-    	return tstr; });
+    /*.text(function(d) { 
+    	return buildTooltip(d.place); });*/
+	
+	$('svg circle').tipsy({ 
+        gravity: 'nw', 
+        title: function() {
+          var d = this.__data__;
+          return buildTooltip(d.place); 
+        }});
 
-root.radius = 0;
+root.radius = 30;
 root.fixed = true;
 
+var CalculateStarPoints = function(centerX, centerY, arms, outerRadius, innerRadius)
+{
+   var results = "";
+
+   var angle = Math.PI / arms;
+
+   for (var i = 0; i < 2 * arms; i++)
+   {
+      // Use outer or inner radius depending on what iteration we are in.
+      var r = (i & 1) == 0 ? outerRadius : innerRadius;
+      
+      var currX = centerX + Math.cos(i * angle) * r;
+      var currY = centerY + Math.sin(i * angle) * r;
+
+      // Our first time we simply append the coordinates, subsequet times
+      // we append a ", " to distinguish each coordinate pair.
+      if (i == 0)
+      {
+         results = currX + "," + currY;
+      }
+      else
+      {
+         results += ", " + currX + "," + currY;
+      }
+   }
+
+   return results;
+}
+villa_alta.svg = svg.append("svg:polygon")
+  .attr("id", "star_1")
+  .attr("visibility", "visible")
+  .style("fill","#960018")
+  .attr("points", CalculateStarPoints(villa_alta.x, villa_alta.y, 5, 30, 15))
+  .attr("id","villa_alta")
+  .append("svg:title")
+    /*.text(function() { 
+    	
+    	return buildTooltip(villa_alta); });*/
+
+$('#villa_alta').tipsy({ 
+        gravity: 'nw', 
+        title: function() {
+          var d = this.__data__;
+          return buildTooltip(villa_alta); 
+        }});
+
 var force = d3.layout.force()
-    .gravity(0.05)
+    .gravity(0.03)
     .charge(function(d, i) { return i ? 0 : 0.0; })
     .nodes(nodes)
     .size([xsz, ysz]);
