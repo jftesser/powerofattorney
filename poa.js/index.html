@@ -11,12 +11,29 @@
     <script src="poa.js" type="text/javascript"></script>
 
 
-    <style> body {padding: 0; margin: 0; font-family: 'Roboto Slab', serif; } </style>
+    <style> 
+    body {padding: 0; margin: 0; font-family: 'Roboto Slab', serif; } 
+    button#start_button {
+    font-family: 'Roboto Slab';
+    background-color: #960018;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+
+}
+button#start_button:hover {
+background-color: #FF032B;
+    }
+    </style>
   </head>
   <body>
-  <h1 style="margin:10px; margin-left: 20px; position: absolute;">Power of Attorney</h1>
+  <h1 style="margin:10px; margin-left: 20px; position: absolute;">Power of Attorney<br> <button id="start_button">Start</button></h1>
+  
   <div>
   <svg id="main" style="width: 800px; height: 600px; overflow: visible; display: block; margin: auto;"></svg>
   </div>
+
   </body>
 </html>

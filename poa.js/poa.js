@@ -307,38 +307,12 @@ var started = false;
 var xos = (window.innerWidth-xsz)*0.5;
 if (xos < 0) xos = 0;
 
-svg.append("rect")
-  .attr("x", -xos+20)
-  .attr("y", ysz-(20+27))
-  .attr("width", 48)
-  .attr("height", 25)
-  .attr("visibility", "visible")
-  .style("fill","#960018")
-  .on("click", function() {
-  	if (!started) {
+document.getElementById("start_button").onclick = function(){if (!started) {
   		console.log("starting");
   		force.start();
   		started = true;
-  	}
-  });
-svg.append("text")
-  .attr("x", -xos+25)
-  .attr("y", ysz-30)
-  .style("fill","white")
-  .text("Start")
-  .on("click", function() {
-  	if (!started) {
-  		console.log("starting");
-  		force.start();
-  		started = true;
-  	}
-  });
-/*svg.on("mousemove", function() {
-  var p1 = d3.mouse(this);
-  root.px = p1[0];
-  root.py = p1[1];
-  force.resume();
-});*/
+  	}};
+
 
 function collide(node) {
   var r = node.radius + 16,
