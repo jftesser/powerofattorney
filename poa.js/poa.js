@@ -221,6 +221,8 @@ svg.selectAll("circle")
     	return r })
     .style("fill-opacity", function(d) { return d.place.alpha;})
     .style("fill", "black")
+    .attr("cx", function(d) { return d.place.x})
+	.attr("cy", function(d) { return d.place.y})
     .attr("stroke-width", 5)
     .attr("stroke", function(d) { return languageToColor(d.place.language); })
     .append("svg:title")
@@ -289,8 +291,6 @@ var force = d3.layout.force()
     .nodes(nodes)
     .size([xsz, ysz]);
 
-force.start();
-
 force.on("tick", function(e) {
   var q = d3.geom.quadtree(nodes),
       i = 0,
@@ -303,6 +303,36 @@ force.on("tick", function(e) {
       .attr("cy", function(d) { return d.y; });
 });
 
+var started = false;
+var xos = (window.innerWidth-xsz)*0.5;
+if (xos < 0) xos = 0;
+
+svg.append("rect")
+  .attr("x", -xos+20)
+  .attr("y", ysz-(20+27))
+  .attr("width", 48)
+  .attr("height", 25)
+  .attr("visibility", "visible")
+  .style("fill","#960018")
+  .on("click", function() {
+  	if (!started) {
+  		console.log("starting");
+  		force.start();
+  		started = true;
+  	}
+  });
+svg.append("text")
+  .attr("x", -xos+25)
+  .attr("y", ysz-30)
+  .style("fill","white")
+  .text("Start")
+  .on("click", function() {
+  	if (!started) {
+  		console.log("starting");
+  		force.start();
+  		started = true;
+  	}
+  });
 /*svg.on("mousemove", function() {
   var p1 = d3.mouse(this);
   root.px = p1[0];
@@ -335,6 +365,7 @@ function collide(node) {
 }
 
 };
+
 
 }
 
